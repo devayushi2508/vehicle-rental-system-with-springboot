@@ -1,5 +1,11 @@
 # Vehicle Rental Monorepo
 
+## Contributors
+- Ayushi Rani
+- shiyabrinta
+- pushkar
+- utsav
+
 Project is now split into:
 
 - `backend` -> Spring Boot API
