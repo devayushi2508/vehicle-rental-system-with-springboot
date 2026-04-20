@@ -1,4 +1,4 @@
-# Vehicle Rental Monorepo
+# Vehicle Rental System
 
 ## Contributors
 - Ayushi Rani
@@ -6,21 +6,89 @@
 - pushkar
 - utsav
 
-Project is now split into:
+Full-stack vehicle rental project with:
 
-- `backend` -> Spring Boot API
-- `frontend` -> React (Vite) web app
+- `backend`: Spring Boot REST API (MongoDB)
+- `frontend`: React + Vite dashboard
 
-## Quick Start
+## What Is Included
 
-Backend:
+- Customer and admin login/register flow
+- Vehicle listing and vehicle creation
+- Rental booking and return flow
+- Booking history and dashboard stats
+- Seeded demo users, customers, and vehicles
+- Integration tests for service flows
+
+## Tech Stack
+
+### Backend
+
+- Java 17
+- Spring Boot 4
+- Spring Web MVC
+- Spring Data MongoDB
+- Spring Validation
+- BCrypt password hashing (`spring-security-crypto`)
+- Maven Wrapper (`mvnw`, `mvnw.cmd`)
+
+### Frontend
+
+- React 18
+- Vite 5
+
+## Project Structure
+
+```text
+vehicle-rental-system-with-springboot/
+|- backend/
+|  |- src/main/java/com/vehiclerental/
+|  |  |- controller/   (REST endpoints)
+|  |  |- service/      (business logic)
+|  |  |- model/        (Mongo documents)
+|  |  |- repository/   (Mongo repositories)
+|  |  |- dto/          (request/response DTOs)
+|  |- src/main/resources/application.properties
+|  |- src/test/java/com/vehiclerental/
+|- frontend/
+|  |- src/App.jsx
+|  |- src/styles.css
+|  |- vite.config.js
+```
+
+## Prerequisites
+
+- JDK 17+
+- Node.js 18+ and npm
+- MongoDB (local or cloud connection string)
+
+## Configuration
+
+Backend uses `MONGODB_URI`.
+
+- `MONGODB_URI` default is defined in `backend/src/main/resources/application.properties`
+- Server port: `8080`
+
+PowerShell example:
+
+```powershell
+$env:MONGODB_URI="mongodb://localhost:27017/rentalsysdb"
+```
+
+## Run The Project
+
+### 1) Start Backend
 
 ```powershell
 Set-Location backend
 .\mvnw.cmd spring-boot:run
 ```
 
-Frontend:
+Backend starts on `http://localhost:8080`.
+
+### 2) Start Frontend
+
+Open a second terminal:
 
 ```powershell
 Set-Location frontend
@@ -28,74 +96,32 @@ npm install
 npm run dev
 ```
 
-Frontend runs at `http://localhost:5173` and calls backend at `http://localhost:8080`.
-# Vehicle Rental System (Spring Boot)
+Frontend starts on `http://localhost:5173` and calls backend at `http://localhost:8080`.
 
-Simple REST API for managing vehicles and rentals.
+## Seed Data And Demo Accounts
 
-## Tech Stack
+On backend startup, if collections are empty, sample data is added.
 
-- Java 17
-- Spring Boot
-- Spring Data JPA
-- MySQL (local runtime)
-- H2 (tests)
-- Maven
+### Seeded Vehicles
 
-## Prerequisites
+- `1` -> Swift (`2000` per day)
+- `2` -> Thar (`4500` per day)
+- `3` -> Creta (`3500` per day)
 
-- JDK 17+
-- Maven 3.9+ (or use `mvnw`/`mvnw.cmd`)
-- MySQL 8+ for local runtime
+### Seeded Customers
 
-## Configuration
+- `1` -> Ayush
+- `2` -> Rahul
 
-Application uses environment variables for DB credentials.
+### Seeded Users
 
-- `DB_URL` (default: `jdbc:mysql://localhost:3306/rentalsysdb`)
-- `DB_USERNAME` (default: `root`)
-- `DB_PASSWORD` (default: empty)
+- Admin: `admin@rentall.com` / `admin123`
+- Customer: `user@rentall.com` / `user123`
+- Customer: `rahul@rentall.com` / `rahul123`
 
-Example (PowerShell):
+## API Summary
 
-```powershell
-$env:DB_URL="jdbc:mysql://localhost:3306/rentalsysdb"
-$env:DB_USERNAME="root"
-$env:DB_PASSWORD="your_password"
-```
-
-## Database Setup (Local MySQL)
-
-Run SQL scripts manually in MySQL Workbench or CLI:
-
-1. `sql/schema.sql`
-2. `sql/data.sql`
-
-## Run the App
-
-Windows:
-
-```powershell
-.\mvnw.cmd spring-boot:run
-```
-
-Linux/macOS:
-
-```bash
-./mvnw spring-boot:run
-```
-
-Server starts on `http://localhost:8080`.
-
-## Run Tests
-
-```powershell
-.\mvnw.cmd test
-```
-
-Tests use in-memory H2 database via `application-test.properties`.
-
-## API Endpoints
+Base URL: `http://localhost:8080`
 
 ### Health
 
@@ -107,9 +133,58 @@ Response:
 Vehicle Rental System Running
 ```
 
+### Auth
+
+- `POST /auth/register`
+- `POST /auth/login`
+
+Register request:
+
+```json
+{
+	"name": "New User",
+	"email": "new@rentall.com",
+	"phone": "9999999999",
+	"password": "secret123"
+}
+```
+
+Login request:
+
+```json
+{
+	"email": "user@rentall.com",
+	"password": "user123"
+}
+```
+
+Auth response shape:
+
+```json
+{
+	"name": "Ayush",
+	"email": "user@rentall.com",
+	"phone": "8888888888",
+	"role": "CUSTOMER",
+	"customerId": 1
+}
+```
+
 ### Vehicles
 
 - `GET /vehicles`
+- `POST /vehicles`
+
+Create vehicle request:
+
+```json
+{
+	"name": "City",
+	"pricePerDay": 3200,
+	"available": true,
+	"imageUrl": "https://example.com/car.jpg"
+}
+```
 
 ### Customers
 
@@ -121,7 +196,7 @@ Vehicle Rental System Running
 - `POST /rentals`
 - `POST /rentals/{rentalId}/return`
 
-Create rental request body:
+Create rental request:
 
 ```json
 {
@@ -131,32 +206,43 @@ Create rental request body:
 }
 ```
 
-Create rental behavior:
+Rental behavior:
 
-- Validates IDs and `days >= 1`
-- Calculates `totalCost = price_per_day * days`
-- Marks vehicle unavailable
+- `days` must be at least `1`
+- total cost = `price_per_day * days`
+- booking marks vehicle unavailable
+- return marks rental returned and vehicle available again
 
-Return rental behavior:
+## Error Response Format
 
-- Marks rental as returned
-- Marks vehicle available again
-
-## Error Handling
-
-Global error handler returns JSON errors for:
-
-- Validation errors (`400`)
-- Business rule violations (`400`)
-- Not found errors (`404`)
-- Unexpected errors (`500`)
-
-Example error response:
+Errors are returned as:
 
 ```json
 {
-	"timestamp": "2026-04-17T12:00:00",
+	"timestamp": "2026-04-20T10:00:00",
 	"status": 400,
 	"error": "days must be at least 1"
 }
 ```
+
+Handled status codes:
+
+- `400` validation and business errors
+- `404` not found
+- `500` unexpected server error
+
+## Run Tests
+
+From `backend`:
+
+```powershell
+.\mvnw.cmd test
+```
+
+Tests use an embedded MongoDB setup (`MongoTestSupport`) and test profile properties.
+
+## Notes
+
+- Frontend API base URL is currently set in `frontend/src/App.jsx`
+- Vite dev server port is configured in `frontend/vite.config.js`
+- Role-based behavior is handled in frontend logic (admin/customer views)
