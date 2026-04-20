@@ -1,4 +1,4 @@
-# Vehicle Rental System Monorepo
+# Vehicle Rental System 
 
 Full-stack vehicle rental project with:
 
